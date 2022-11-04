@@ -1,19 +1,16 @@
 from mcstatus import JavaServer
-import os
-import math
-import threading
-import time
-import argparse
+import threading, time, argparse, csv, os
 
 parser = argparse.ArgumentParser(description='get files for procesing')
 parser.add_argument("-i", "--inputfile", type=str, help="put in the file with all the server IP's")
 parser.add_argument("-o","--outputfile", type=str, help="the name of the file to put in the results")
 parser.add_argument("-p","--publicserverlist", type=str, help="put in the file with the public server list (public.txt)")
 parser.add_argument("-v","--version", type=str, default="", required=False, help="you can specify the minecarft server you wanna find")
+parser.add_argument("-c","--csvfile", type=str, default="", required=False, help="Output in the specified CSV file")
 args = parser.parse_args()
 
 masscan = []
-print('Multithreaded mass minecraft server status checker by Footsiefat/Deathmonger')
+print('Multithreaded mass minecraft server status checker by Footsiefat/Deathmonger, csv edit by enzomtp')
 
 time.sleep(1)
 
@@ -21,11 +18,17 @@ inputfile = args.inputfile
 outputfile = args.outputfile
 publicserverlist = args.publicserverlist
 searchterm = args.version
+csvfile = args.csvfile
 
-outfile = open(outputfile, 'a+')
-outfile.close
+open(outputfile, 'a+').close
+open(publicserverlist, 'a+').close
+if csvfile:
+    if not os.path.isfile(csvfile):
+        with open(csvfile, 'w') as c:
+            wr = csv.writer(c)
+            wr.writerow(["Ip", "Version", "Online Players"])
 
-fileHandler = open (inputfile, "r")
+fileHandler = open(inputfile, "r")
 listOfLines = fileHandler.readlines()
 fileHandler.close()
 
@@ -79,9 +82,23 @@ def print_time(threadName):
                         with open(publicserverlist) as g:
                             if ip not in g.read():
                                 text_file = open(outputfile, "a")
-                                text_file.write(ip + " " + status.version.name.replace(" ", "_") + " " + str(status.players.online))
-                                text_file.write(os.linesep)
+                                text_file.write("Ip : " + ip + " Version : " + status.version.name.replace(" ", "_") + " Players Online : " + str(status.players.online)+"\n")
                                 text_file.close()
+            if csvfile:
+                with open(csvfile, "r") as c:
+                    here = False
+                    reader = csv.reader(c, delimiter=',')
+                    for row in reader:
+                        if row == []:
+                            # Need to create a function to clear empty rows
+                            return
+                        else:
+                            if ip == row[0]:
+                                here = True
+                if here == False:
+                    sheetfile = open(csvfile, 'a')
+                    csv.writer(sheetfile).writerow([ip, status.version.name.replace(" ", "_"), str(status.players.online)])
+                    sheetfile.close()
 
 for x in range(threads):
     thread = myThread(x, str(x)).start()
