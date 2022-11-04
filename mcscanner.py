@@ -84,21 +84,19 @@ def print_time(threadName):
                                 text_file = open(outputfile, "a")
                                 text_file.write("Ip : " + ip + " Version : " + status.version.name.replace(" ", "_") + " Players Online : " + str(status.players.online)+"\n")
                                 text_file.close()
-            if csvfile:
-                with open(csvfile, "r") as c:
-                    here = False
-                    reader = csv.reader(c, delimiter=',')
-                    for row in reader:
-                        if row == []:
-                            # Need to create a function to clear empty rows
-                            return
-                        else:
-                            if ip == row[0]:
-                                here = True
-                if here == False:
-                    sheetfile = open(csvfile, 'a')
-                    csv.writer(sheetfile).writerow([ip, status.version.name.replace(" ", "_"), str(status.players.online)])
-                    sheetfile.close()
+                                if csvfile:
+                                    here = False
+                                    with open(csvfile, "r") as c:
+                                        reader = csv.reader(c, delimiter=',')
+                                        for row in reader:
+                                            if not row == []:
+                                                if ip == row[0]:
+                                                    here = True
+                                    if here == False:
+                                        sheetfile = open(csvfile, 'a')
+                                        d = [ip, status.version.name.replace(" ", "_"), str(status.players.online)]
+                                        csv.writer(sheetfile).writerow(d)
+                                        sheetfile.close()
 
 for x in range(threads):
     thread = myThread(x, str(x)).start()
